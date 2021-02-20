@@ -80,6 +80,50 @@ public struct JailbreakDetectorConfiguration {
 }
 
 /// The jailbreak detector.
+///
+/// For basic usage, create a `JailbreakDetector` instance and invoke the  `isJailbroken()` method:
+///
+/// ```
+/// let detector = JailbreakDetector()
+/// if detector.isJailbroken() {
+///     // print("This device might be jailbroken!")
+/// }
+/// ```
+///
+/// If you need to dig deeper into the jailbreak detector results, use the `detectJailbreak()` method, which returns a `Result` enumeration:
+///
+/// ```
+/// let detector = JailbreakDetector()
+/// switch detector.detectJailbreak() {
+/// case .pass:
+///     print("Not jailbroken!")
+/// case .fail(let reasons):
+///     print("Might be jailbroken because:")
+///     for reason in reasons {
+///         print("Reason: \(reason)")
+///     }
+/// case .simulator:
+///     print("Running in the simulator!")
+/// }
+/// ```
+///
+/// For finer control over the jailbreak detector's behaviour, use `JailbreakDetectorConfiguration`.
+/// Note: in most cases you'll want to use the default configuration as-is or as a baseline instead of initializing your own configuration from / scratch.
+///
+/// ```
+/// // Start with the default configuration.
+/// var configuration = JailbreakDetectorConfiguration.default
+///
+/// // Enable logging.
+/// configuration.loggingEnabled = true
+///
+/// // Disable halt after failure. When disabled, the jailbreak detector will continue with its checks
+/// // even after encountering a failure, and the `Result.fail` case may include multiple failure reasons.
+/// configuration.haltAfterFailure = false
+///
+/// // Initialize the jailbreak detector with the custom configuration.
+/// let detector = JailbreakDetector(using: configuration)
+/// ````
 public class JailbreakDetector {
 
     /// A reason why the device is suspected to be jailbroken.
@@ -123,7 +167,7 @@ public class JailbreakDetector {
         /// in the jailbreak configuration, only one failure reason will be supplied.
         case fail(reasons: [FailureReason])
 
-        /// The app is running on the iOS simulator.
+        /// The app is running on the iOS Simulator.
         case simulator
     }
 
@@ -164,7 +208,7 @@ public class JailbreakDetector {
         #if targetEnvironment(simulator)
 
         if configuration.loggingEnabled {
-            os_log("Detected the iOS simulator.", log: log, type: configuration.logType)
+            os_log("Detected the iOS Simulator.", log: log, type: configuration.logType)
         }
         result = .simulator
 

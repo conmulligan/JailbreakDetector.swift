@@ -4,6 +4,49 @@ A super simple, configurable and (optionally) verbose jailbreak detector for iOS
 
 ## Getting Started
 
+For basic usage, create a `JailbreakDetector` instance and invoke the  `isJailbroken()` method:
+
+```Swift
+let detector = JailbreakDetector()
+if detector.isJailbroken() {
+    // print("This device might be jailbroken!")
+}
+```
+
+If you need to dig deeper into the jailbreak detector results, use the `detectJailbreak()` method, which returns a `Result` enumeration:
+
+```Swift
+let detector = JailbreakDetector()
+switch detector.detectJailbreak() {
+case .pass:
+    print("Not jailbroken!")
+case .fail(let reasons):
+    print("Might be jailbroken because:")
+    for reason in reasons {
+        print("Reason: \(reason)")
+    }
+case .simulator:
+    print("Running in the simulator!")
+}
+```
+
+For finer control over the jailbreak detector's behaviour, use `JailbreakDetectorConfiguration`.
+Note: in most cases you'll want to use the default configuration as-is or as a baseline instead of initializing your own configuration from scratch.
+
+```Swift
+// Start with the default configuration.
+var configuration = JailbreakDetectorConfiguration.default
+
+// Enable logging.
+configuration.loggingEnabled = true
+
+// Disable halt after failure. When disabled, the jailbreak detector will continue with its checks
+// even after encountering a failure, and the `Result.fail` case may include multiple failure reasons.
+configuration.haltAfterFailure = false
+
+// Initialize the jailbreak detector with the custom configuration.
+let detector = JailbreakDetector(using: configuration)
+````
 
 ## Installation
 
