@@ -161,7 +161,7 @@ public class JailbreakDetector {
     public func detectJailbreak() -> Result {
         var result: Result
 
-        #if !targetEnvironment(simulator)
+        #if targetEnvironment(simulator)
 
         if configuration.loggingEnabled {
             os_log("Detected the iOS simulator.", log: log, type: configuration.logType)
