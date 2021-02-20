@@ -144,7 +144,7 @@ public class JailbreakDetector {
         if configuration.loggingEnabled {
             os_log("Detected the iOS simulator.", log: log, type: configuration.logType)
         }
-        //result = .simulator
+        result = .simulator
         #endif
 
         var failureReasons = [FailureReason]()
