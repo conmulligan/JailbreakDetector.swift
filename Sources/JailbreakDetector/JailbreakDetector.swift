@@ -30,28 +30,28 @@ import os.log
 public struct JailbreakDetectorConfiguration {
 
     /// Suspicious file paths.
-    var suspicousFilePaths: [String]
+    public var suspicousFilePaths: [String]
 
     /// Paths to files that exist outside the app sandbox.
     /// Used to verify that app sandboxing is intact.
-    var sandboxFilesPaths: [String]
+    public var sandboxFilesPaths: [String]
 
     /// URL schemes that suspicous apps may respond to.
-    var suspiciousURLs: [String]
+    public var suspiciousURLs: [String]
 
     /// A test string used to verify that app sandboxing is intact.
-    var sandboxTestString = "."
+    public var sandboxTestString = "."
 
     /// If `true`, the jailbreak detector will halt immediately after encountering a failure.
     /// If `false`, the jailbreak detector will continue even after encountering a failure,
     /// and may potentially return multiple failure reasons when complete.
-    var haltAfterFailure = true
+    public var haltAfterFailure = true
 
     /// If `true`, the jailbreak detector will log messages using `os.log`.
-    var loggingEnabled = false
+    public var loggingEnabled = false
 
     /// The log type.
-    var logType = OSLogType.info
+    public var logType = OSLogType.info
 
     /// The default configuration.
     public static var `default`: JailbreakDetectorConfiguration {
