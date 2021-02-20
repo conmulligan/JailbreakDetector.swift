@@ -44,16 +44,17 @@ public struct JailbreakDetectorConfiguration {
 
     /// If `true`, the jailbreak detector will halt immediately after encountering a failure.
     /// If `false`, the jailbreak detector will continue even after encountering a failure,
-    /// and may potentially return multiple failure reasons when complete.
+    /// and potentially return multiple failure reasons when complete.
     public var haltAfterFailure = true
 
     /// If `true`, the jailbreak detector will log messages using `os.log`.
     public var loggingEnabled = false
 
-    /// The log type.
+    /// The log type to use when writing log messages.
     public var logType = OSLogType.info
 
-    /// The default configuration.
+    /// The default configuration. In most cases you'll want to use this as-is
+    /// or as a baseline instead of initializing your own configuration from scratch.
     public static var `default`: JailbreakDetectorConfiguration {
         let filePaths = [
             "/Applications/Cydia.app",
@@ -83,11 +84,20 @@ public class JailbreakDetector {
 
     /// A reason why the device is suspected to be jailbroken.
     public enum FailureReason: CustomStringConvertible {
+
+        /// A suspicious file exists on the filesystem.
         case suspiciousFileExists(filePath: String)
+
+        /// A suspicious file is readable using `fopen`.
         case suspiciousFileIsReadable(filePath: String)
+
+        /// Files are writable outside the app sandbox.
         case appSandbox(filePath: String)
+
+        /// The application can open a URL with a suspicious URL scheme.
         case suspiciousURLScheme(url: String)
 
+        /// Failure reason description.
         public var description: String {
             switch self {
             case .suspiciousFileExists(let filePath):
@@ -102,30 +112,40 @@ public class JailbreakDetector {
         }
     }
 
-    /// A detection result.
+    /// A jailbreak detection result.
     public enum Result {
+
+        /// All jailbreak detector checks have passed.
         case pass
+
+        /// The jailbreak detector has determined that the device is jailbroken
+        /// for the given reasons. Note: if `haltAfterFailure` is enabled
+        /// in the jailbreak configuration, only one failure reason will be supplied.
         case fail(reasons: [FailureReason])
+
+        /// The app is running on the iOS simulator.
         case simulator
     }
 
     // MARK: - Properties
 
-    // The log.
+    /// The log used when writing log messages.
     let log = OSLog(subsystem: "com.github.conmulligan.JailbreakDetector", category: "Jailbreak Detection")
 
-    /// The current configuration
+    /// The current configuration.
     let configuration: JailbreakDetectorConfiguration
 
     // MARK: - Initialization
-
+    
+    /// Initialize a new jailbreak detector with the supplied configuration.
+    /// - Parameter configuration: The jailbreak detector configuration.
     public init(using configuration: JailbreakDetectorConfiguration = .default) {
         self.configuration = configuration
     }
 
     // MARK: - Detection
 
-    /// Checks if the app is running on a device that may be jailbroken.
+    /// Check if the app is running on a device that may be jailbroken.
     /// - Returns: `true` if the app may be running on a jailbroken device. Otherwise, `false`.
     public func isJailbroken() -> Bool {
         switch detectJailbreak() {
@@ -136,7 +156,7 @@ public class JailbreakDetector {
         }
     }
 
-    /// Checks if the app is running on a device that may be jailbroken.
+    /// Check if the app is running on a device that may be jailbroken.
     /// - Returns: The detection result.
     public func detectJailbreak() -> Result {
         var result: Result
@@ -150,14 +170,7 @@ public class JailbreakDetector {
 
         var failureReasons = [FailureReason]()
 
-        if let reasons = checkSuspiciousFilesExist() {
-            failureReasons.append(contentsOf: reasons)
-            if configuration.haltAfterFailure {
-                return .fail(reasons: failureReasons)
-            }
-        }
-
-        if let reasons = checkSuspiciousFilesReadable() {
+        if let reasons = checkSuspiciousFiles() {
             failureReasons.append(contentsOf: reasons)
             if configuration.haltAfterFailure {
                 return .fail(reasons: failureReasons)
@@ -165,6 +178,13 @@ public class JailbreakDetector {
         }
 
         if let reasons = checkAppSandbox() {
+            failureReasons.append(contentsOf: reasons)
+            if configuration.haltAfterFailure {
+                return .fail(reasons: failureReasons)
+            }
+        }
+
+        if let reasons = checkSuspiciousURLs() {
             failureReasons.append(contentsOf: reasons)
             if configuration.haltAfterFailure {
                 return .fail(reasons: failureReasons)
@@ -192,10 +212,11 @@ fileprivate extension JailbreakDetector {
 
     /// Check for the presence of known suspicious files.
     /// - Returns: The failure reasons.
-    private func checkSuspiciousFilesExist() -> [FailureReason]? {
+    private func checkSuspiciousFiles() -> [FailureReason]? {
         var reasons = [FailureReason]()
 
         for path in configuration.suspicousFilePaths {
+            // Check if suspicious file exists.
             if FileManager.default.fileExists(atPath: path) {
                 let reason = FailureReason.suspiciousFileExists(filePath: path)
                 reasons.append(reason)
@@ -208,17 +229,8 @@ fileprivate extension JailbreakDetector {
                     return reasons
                 }
             }
-        }
 
-        return reasons.isEmpty ? nil : reasons
-    }
-
-    /// Check for the presence of known suspicious files.
-    /// - Returns: The failure reason.
-    private func checkSuspiciousFilesReadable() -> [FailureReason]? {
-        var reasons = [FailureReason]()
-
-        for path in configuration.suspicousFilePaths {
+            // Check if suspicious file is readable.
             let file = fopen(path, "r")
             if file != nil {
                 fclose(file)
