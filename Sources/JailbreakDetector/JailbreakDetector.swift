@@ -78,6 +78,7 @@ public struct JailbreakDetectorConfiguration {
     }
 }
 
+/// The jailbreak detector.
 public class JailbreakDetector {
 
     /// A reason why the device is suspected to be jailbroken.
@@ -151,16 +152,27 @@ public class JailbreakDetector {
 
         if let reasons = checkSuspiciousFilesExist() {
             failureReasons.append(contentsOf: reasons)
+            if configuration.haltAfterFailure {
+                return .fail(reasons: failureReasons)
+            }
         }
 
         if let reasons = checkSuspiciousFilesReadable() {
             failureReasons.append(contentsOf: reasons)
+            if configuration.haltAfterFailure {
+                return .fail(reasons: failureReasons)
+            }
         }
 
         if let reasons = checkAppSandbox() {
             failureReasons.append(contentsOf: reasons)
+            if configuration.haltAfterFailure {
+                return .fail(reasons: failureReasons)
+            }
         }
 
+        // If no failures have been detected, give the all clear.
+        // Otherwise, return a fail result with the failure reasons.
         if failureReasons.isEmpty {
             if configuration.loggingEnabled {
                 os_log("All checks passed!", log: log, type: configuration.logType)
@@ -191,6 +203,10 @@ fileprivate extension JailbreakDetector {
                 if configuration.loggingEnabled {
                     os_log("Check failed: %s", log: log, type: configuration.logType, reason.description)
                 }
+
+                if configuration.haltAfterFailure {
+                    return reasons
+                }
             }
         }
 
@@ -211,6 +227,10 @@ fileprivate extension JailbreakDetector {
 
                 if configuration.loggingEnabled {
                     os_log("Check failed: %s", log: log, type: configuration.logType, reason.description)
+                }
+
+                if configuration.haltAfterFailure {
+                    return reasons
                 }
             }
         }
@@ -234,6 +254,10 @@ fileprivate extension JailbreakDetector {
                 if configuration.loggingEnabled {
                     os_log("Check failed: %s", log: log, type: configuration.logType, reason.description)
                 }
+
+                if configuration.haltAfterFailure {
+                    return reasons
+                }
             }
         } catch {
             // Ignore error.
@@ -254,6 +278,10 @@ fileprivate extension JailbreakDetector {
 
                 if configuration.loggingEnabled {
                     os_log("Check failed: %s", log: log, type: configuration.logType, reason.description)
+                }
+
+                if configuration.haltAfterFailure {
+                    return reasons
                 }
             }
         }
