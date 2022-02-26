@@ -62,9 +62,10 @@ public struct JailbreakDetectorConfiguration {
             "/Applications/Cydia.app",
             "/Library/MobileSubstrate/MobileSubstrate.dylib",
             "/bin/bash",
+            "/etc/apt",
             "/usr/bin/ssh",
             "/usr/sbin/sshd",
-            "/etc/apt"
+            "/private/var/lib/apt"
         ]
 
         let sandboxFilesPaths = [
@@ -101,7 +102,7 @@ public struct JailbreakDetectorConfiguration {
 /// ```
 /// let detector = JailbreakDetector()
 /// if detector.isJailbroken() {
-///     // print("This device might be jailbroken!")
+///     print("This device might be jailbroken!")
 /// }
 /// ```
 ///
@@ -119,6 +120,8 @@ public struct JailbreakDetectorConfiguration {
 ///     }
 /// case .simulator:
 ///     print("Running in the simulator!")
+/// case .macCatalyst:
+///         print("Running on macOS!")
 /// }
 /// ```
 ///
@@ -182,6 +185,9 @@ public class JailbreakDetector {
 
         /// The app is running on the iOS Simulator.
         case simulator
+        
+        /// The app is running on macOS using Mac Catalyst.
+        case macCatalyst
     }
 
     // MARK: - Properties
@@ -212,11 +218,20 @@ public class JailbreakDetector {
         return isSimulator && configuration.automaticallyPassSimulator
     }
     
+    /// Checks if the target environment is Mac Catalyst.
+    private var isMacCatalyst: Bool {
+        #if targetEnvironment(macCatalyst)
+        return true
+        #else
+        return false
+        #endif
+    }
+    
     /// Check if the app is running on a device that may be jailbroken.
     /// - Returns: `true` if the app may be running on a jailbroken device. Otherwise, `false`.
     public func isJailbroken() -> Bool {
         switch detectJailbreak() {
-        case .pass, .simulator:
+        case .pass, .simulator, .macCatalyst:
             return false
         case .fail:
             return true
@@ -234,6 +249,14 @@ public class JailbreakDetector {
             return .simulator
         }
 
+        // If running on macOS, return the `macCatalyst` result.
+        guard !isMacCatalyst else {
+            if configuration.loggingEnabled {
+                os_log("Detected macOS.", log: log, type: configuration.logType)
+            }
+            return .macCatalyst
+        }
+        
         // The detection result.
         var result: Result
         

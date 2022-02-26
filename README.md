@@ -31,6 +31,8 @@ case .fail(let reasons):
     }
 case .simulator:
     print("Running in the simulator!")
+case .macCatalyst:
+        print("Running on macOS!")
 }
 ```
 

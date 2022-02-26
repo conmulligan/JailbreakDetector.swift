@@ -30,6 +30,7 @@ final class JailbreakDetectorTests: XCTestCase {
     /// All test cases.
     static var allTests = [
         ("testDefaultConfiguration", testDefaultConfiguration),
+        ("testDefaultConfigurationResult", testDefaultConfigurationResult),
         ("testFailingConfiguration", testFailingConfiguration),
         ("testSuspiciousFiles", testSuspiciousFiles),
         ("testDetectSandboxWriteable", testDetectSandboxWriteable),
@@ -42,6 +43,18 @@ final class JailbreakDetectorTests: XCTestCase {
         let configuration = JailbreakDetectorConfiguration.default
         let detector = JailbreakDetector(using: configuration)
         XCTAssertFalse(detector.isJailbroken())
+    }
+    
+    /// Tests the `Result` enumeration using the default configuration.
+    func testDefaultConfigurationResult() {
+        let configuration = JailbreakDetectorConfiguration.default
+        let detector = JailbreakDetector(using: configuration)
+        switch detector.detectJailbreak() {
+        case .pass, .simulator, .macCatalyst:
+            break
+        case .fail:
+            XCTFail()
+        }
     }
     
     /// Tests a default configuration that's expected to fail.
