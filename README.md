@@ -2,14 +2,18 @@
 
 A super simple, configurable and (optionally) verbose jailbreak detector for iOS.
 
+JailbreakDetector isn't designed to prevent apps from running on jailbroken devices, or even detect jailbreaks with 100% accuracy. Instead, it focuses on detecting some common signs of a jailbreak, allows you to interrogate the results to determine why a jailbreak a suspected, and 
+
 ## Getting Started
 
 For basic usage, create a `JailbreakDetector` instance and invoke the  `isJailbroken()` method:
 
 ```Swift
+import JailbreakDetector
+
 let detector = JailbreakDetector()
 if detector.isJailbroken() {
-    // print("This device might be jailbroken!")
+    print("This device might be jailbroken!")
 }
 ```
 
@@ -40,8 +44,9 @@ var configuration = JailbreakDetectorConfiguration.default
 // Enable logging.
 configuration.loggingEnabled = true
 
-// Disable halt after failure. When disabled, the jailbreak detector will continue with its checks
-// even after encountering a failure, and the `Result.fail` case may include multiple failure reasons.
+// Disable halt after failure. When disabled, the jailbreak detector will
+// continue with its checks even after encountering a failure,
+// and the `Result.fail` case may include multiple failure reasons.
 configuration.haltAfterFailure = false
 
 // Initialize the jailbreak detector with the custom configuration.
