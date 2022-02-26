@@ -2,7 +2,9 @@
 
 A super simple, configurable and (optionally) verbose jailbreak detector for iOS.
 
-JailbreakDetector isn't designed to prevent apps from running on jailbroken devices, or even detect jailbreaks with 100% accuracy. Instead, it focuses on detecting some common signs of a jailbreak, allows you to interrogate the results to determine why a jailbreak a suspected, and 
+`JailbreakDetector` isn't designed to prevent apps from running on jailbroken devices, or even detect jailbreaks with 100% accuracy. Instead, it focuses on detecting some common signs of a jailbreak, and allows you to interrogate the results to determine why a jailbreak is suspected (which may be useful when debugging unexpected behaviour on jailbroken devices).
+
+You can also customize the jailbreak detector's behaviour using `JailbreakDetectorConfiguration` for greater control over which parts of the system are probed.
 
 ## Getting Started
 
@@ -32,7 +34,7 @@ case .fail(let reasons):
 case .simulator:
     print("Running in the simulator!")
 case .macCatalyst:
-        print("Running on macOS!")
+    print("Running on macOS!")
 }
 ```
 
