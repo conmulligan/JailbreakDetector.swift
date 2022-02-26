@@ -1,0 +1,64 @@
+included:
+  - "Sources"
+  - "Tests"
+
+disabled_rules:
+  - force_cast
+  - identifier_name
+  - type_body_length
+  - file_length
+  - todo
+
+opt_in_rules:
+  - anyobject_protocol
+  - array_init
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - convenience_type
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fatal_error_message
+  - first_where
+  - flatmap_over_map_reduce
+  - identical_operands
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - legacy_random
+  - lower_acl_than_parent
+  - modifier_order
+  - no_extension_access_modifier
+  - overridden_super_call
+  - pattern_matching_keywords
+  - prohibited_super_call
+  - reduce_into
+  - redundant_type_annotation
+  - sorted_first_last
+  - toggle_bool
+  - unused_declaration
+  - unused_import
+  - yoda_condition
+
+analyzer_rules:
+  - explicit_self
+
+line_length: 150
+
+cyclomatic_complexity:
+  warning: 20
+  error: 30
+
+type_name:
+  min_length: 1
+
+function_body_length:
+  - 100
+
+vertical_whitespace:
+  max_empty_lines: 2

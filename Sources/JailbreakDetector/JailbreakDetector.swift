@@ -48,7 +48,7 @@ public struct JailbreakDetectorConfiguration {
 
     /// If `true`, the jailbreak detector automatically passes with the result `simulator` when running in an iOS simulator.
     public var automaticallyPassSimulator = true
-    
+
     /// If `true`, the jailbreak detector will log messages using `os.log`.
     public var loggingEnabled = false
 
@@ -80,9 +80,9 @@ public struct JailbreakDetectorConfiguration {
                                               sandboxFilePaths: sandboxFilesPaths,
                                               suspiciousURLs: suspiciousURLs)
     }
-    
+
     // MARK: - Initialization
-    
+
     /// Initialize a new configuration.
     /// - Parameters:
     ///   - suspiciousFilePaths: Suspicious file paths to check.
@@ -126,7 +126,8 @@ public struct JailbreakDetectorConfiguration {
 /// ```
 ///
 /// For finer control over the jailbreak detector's behaviour, use `JailbreakDetectorConfiguration`.
-/// Note: in most cases you'll want to use the default configuration as-is, or as a baseline, instead of initializing your own configuration from scratch.
+/// Note: in most cases you'll want to use the default configuration as-is, or as a baseline,
+/// instead of initializing your own configuration from scratch.
 ///
 /// ```
 /// // Start with the default configuration.
@@ -185,7 +186,7 @@ public class JailbreakDetector {
 
         /// The app is running on the iOS Simulator.
         case simulator
-        
+
         /// The app is running on macOS using Mac Catalyst.
         case macCatalyst
     }
@@ -199,7 +200,7 @@ public class JailbreakDetector {
     private let log = OSLog(subsystem: "com.github.conmulligan.JailbreakDetector", category: "Jailbreak Detection")
 
     // MARK: - Initialization
-    
+
     /// Initialize a new jailbreak detector with the supplied configuration.
     /// - Parameter configuration: The jailbreak detector configuration.
     public init(using configuration: JailbreakDetectorConfiguration = .default) {
@@ -207,7 +208,7 @@ public class JailbreakDetector {
     }
 
     // MARK: - Detection
-    
+
     /// Determines whether or not the detector should automatically pass when running in the simulator.
     private var shouldPassSimulator: Bool {
         #if targetEnvironment(simulator)
@@ -217,7 +218,7 @@ public class JailbreakDetector {
         #endif
         return isSimulator && configuration.automaticallyPassSimulator
     }
-    
+
     /// Checks if the target environment is Mac Catalyst.
     private var isMacCatalyst: Bool {
         #if targetEnvironment(macCatalyst)
@@ -226,7 +227,7 @@ public class JailbreakDetector {
         return false
         #endif
     }
-    
+
     /// Check if the app is running on a device that may be jailbroken.
     /// - Returns: `true` if the app may be running on a jailbroken device. Otherwise, `false`.
     public func isJailbroken() -> Bool {
@@ -256,10 +257,10 @@ public class JailbreakDetector {
             }
             return .macCatalyst
         }
-        
+
         // The detection result.
         var result: Result
-        
+
         // All detected failure reasons.
         var failureReasons = [FailureReason]()
 
@@ -299,7 +300,7 @@ public class JailbreakDetector {
     }
 }
 
-fileprivate extension JailbreakDetector {
+extension JailbreakDetector {
 
     // MARK: - Jailbreak Checks
 
@@ -307,7 +308,7 @@ fileprivate extension JailbreakDetector {
     /// - Returns: The failure reasons.
     private func checkSuspiciousFiles() -> [FailureReason]? {
         guard let suspiciousFilePaths = configuration.suspiciousFilePaths else { return nil }
-        
+
         // The failure reasons.
         var reasons = [FailureReason]()
 
@@ -351,7 +352,7 @@ fileprivate extension JailbreakDetector {
     /// - Returns: The failure reason.
     private func checkAppSandbox() -> [FailureReason]? {
         guard let sandboxFilePaths = configuration.sandboxFilePaths else { return nil }
-        
+
         // The failure reasons.
         var reasons = [FailureReason]()
 
@@ -383,7 +384,7 @@ fileprivate extension JailbreakDetector {
     /// - Returns: The failure reason.
     private func checkSuspiciousURLs() -> [FailureReason]? {
         guard let suspiciousURLs = configuration.suspiciousURLs else { return nil }
-        
+
         // The failure reasons.
         var reasons = [FailureReason]()
 
