@@ -31,7 +31,7 @@ case .simulator:
 ```
 
 For finer control over the jailbreak detector's behaviour, use `JailbreakDetectorConfiguration`.
-Note: in most cases you'll want to use the default configuration as-is or as a baseline instead of initializing your own configuration from scratch.
+Note: in most cases you'll want to use the default configuration as-is, or as a baseline, instead of initializing your own configuration from scratch.
 
 ```Swift
 // Start with the default configuration.

@@ -29,14 +29,14 @@ import OSLog
 /// Configures the jailbreak detector.
 public struct JailbreakDetectorConfiguration {
     /// Suspicious file paths.
-    public var suspiciousFilePaths: [String]
+    public var suspiciousFilePaths: [String]?
 
     /// Paths to files that exist outside the app sandbox.
     /// Used to verify that app sandboxing is intact.
-    public var sandboxFilePaths: [String]
+    public var sandboxFilePaths: [String]?
 
     /// URL schemes that suspicious apps may respond to.
-    public var suspiciousURLs: [String]
+    public var suspiciousURLs: [String]?
 
     /// A test string used to verify that app sandboxing is intact.
     public var sandboxTestString = "."
@@ -46,14 +46,17 @@ public struct JailbreakDetectorConfiguration {
     /// and potentially return multiple failure reasons when complete.
     public var haltAfterFailure = true
 
+    /// If `true`, the jailbreak detector automatically passes with the result `simulator` when running in an iOS simulator.
+    public var automaticallyPassSimulator = true
+    
     /// If `true`, the jailbreak detector will log messages using `os.log`.
     public var loggingEnabled = false
 
     /// The log type to use when writing log messages.
     public var logType = OSLogType.info
 
-    /// The default configuration. In most cases you'll want to use this as-is
-    /// or as a baseline instead of initializing your own configuration from scratch.
+    /// The default configuration. In most cases you'll want to use this as-is,
+    /// or as a baseline, instead of initializing your own configuration from scratch.
     public static var `default`: JailbreakDetectorConfiguration {
         let filePaths = [
             "/Applications/Cydia.app",
@@ -85,9 +88,9 @@ public struct JailbreakDetectorConfiguration {
     ///   - sandboxFilePaths: Sandboxed file paths to check.
     ///   - suspiciousURLs: Suspicious URLs to check.
     public init(suspiciousFilePaths: [String]? = nil, sandboxFilePaths: [String]? = nil, suspiciousURLs: [String]? = nil) {
-        self.suspiciousFilePaths = suspiciousFilePaths ?? [String]()
-        self.sandboxFilePaths = sandboxFilePaths ?? [String]()
-        self.suspiciousURLs = suspiciousURLs ?? [String]()
+        self.suspiciousFilePaths = suspiciousFilePaths
+        self.sandboxFilePaths = sandboxFilePaths
+        self.suspiciousURLs = suspiciousURLs
     }
 }
 
@@ -120,7 +123,7 @@ public struct JailbreakDetectorConfiguration {
 /// ```
 ///
 /// For finer control over the jailbreak detector's behaviour, use `JailbreakDetectorConfiguration`.
-/// Note: in most cases you'll want to use the default configuration as-is or as a baseline instead of initializing your own configuration from scratch.
+/// Note: in most cases you'll want to use the default configuration as-is, or as a baseline, instead of initializing your own configuration from scratch.
 ///
 /// ```
 /// // Start with the default configuration.
@@ -198,7 +201,17 @@ public class JailbreakDetector {
     }
 
     // MARK: - Detection
-
+    
+    /// Determines whether or not the detector should automatically pass when running in the simulator.
+    private var shouldPassSimulator: Bool {
+        #if targetEnvironment(simulator)
+        let isSimulator = true
+        #else
+        let isSimulator = false
+        #endif
+        return isSimulator && configuration.automaticallyPassSimulator
+    }
+    
     /// Check if the app is running on a device that may be jailbroken.
     /// - Returns: `true` if the app may be running on a jailbroken device. Otherwise, `false`.
     public func isJailbroken() -> Bool {
@@ -213,14 +226,18 @@ public class JailbreakDetector {
     /// Check if the app is running on a device that may be jailbroken.
     /// - Returns: The detection result.
     public func detectJailbreak() -> Result {
-        var result: Result
-
-#if targetEnvironment(simulator)
-        if configuration.loggingEnabled {
-            os_log("Detected the iOS Simulator.", log: log, type: configuration.logType)
+        // If running in the simulator, return the `simulator` result.
+        guard !shouldPassSimulator else {
+            if configuration.loggingEnabled {
+                os_log("Detected the iOS Simulator.", log: log, type: configuration.logType)
+            }
+            return .simulator
         }
-        result = .simulator
-#else
+
+        // The detection result.
+        var result: Result
+        
+        // All detected failure reasons.
         var failureReasons = [FailureReason]()
 
         if let reasons = checkSuspiciousFiles() {
@@ -254,7 +271,6 @@ public class JailbreakDetector {
         } else {
             result = .fail(reasons: failureReasons)
         }
-#endif
 
         return result
     }
@@ -267,9 +283,13 @@ fileprivate extension JailbreakDetector {
     /// Check for the presence of known suspicious files.
     /// - Returns: The failure reasons.
     private func checkSuspiciousFiles() -> [FailureReason]? {
+        guard let suspiciousFilePaths = configuration.suspiciousFilePaths else { return nil }
+        
+        // The failure reasons.
         var reasons = [FailureReason]()
 
-        for path in configuration.suspiciousFilePaths {
+        // Check each suspicious file path.
+        for path in suspiciousFilePaths {
             // Check if suspicious file exists.
             if FileManager.default.fileExists(atPath: path) {
                 let reason = FailureReason.suspiciousFileExists(filePath: path)
@@ -307,10 +327,14 @@ fileprivate extension JailbreakDetector {
     /// Check if the app can access files outside of its sandbox.
     /// - Returns: The failure reason.
     private func checkAppSandbox() -> [FailureReason]? {
+        guard let sandboxFilePaths = configuration.sandboxFilePaths else { return nil }
+        
+        // The failure reasons.
         var reasons = [FailureReason]()
 
         do {
-            for path in configuration.sandboxFilePaths {
+            // Check each sandbox file path.
+            for path in sandboxFilePaths {
                 try configuration.sandboxTestString.write(toFile: path, atomically: true, encoding: .utf8)
                 try FileManager.default.removeItem(atPath: path)
 
@@ -326,7 +350,7 @@ fileprivate extension JailbreakDetector {
                 }
             }
         } catch {
-            // Ignore error.
+            // Ignore error since it's expected in a non-jailbroken context.
         }
 
         return reasons.isEmpty ? nil : reasons
@@ -335,9 +359,13 @@ fileprivate extension JailbreakDetector {
     /// Check if the app can open suspicious URL schemes.
     /// - Returns: The failure reason.
     private func checkSuspiciousURLs() -> [FailureReason]? {
+        guard let suspiciousURLs = configuration.suspiciousURLs else { return nil }
+        
+        // The failure reasons.
         var reasons = [FailureReason]()
 
-        for path in configuration.suspiciousURLs {
+        // Check each suspicous URL.
+        for path in suspiciousURLs {
             if let url = URL(string: path), UIApplication.shared.canOpenURL(url) {
                 let reason = FailureReason.suspiciousURLScheme(url: path)
                 reasons.append(reason)
