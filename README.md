@@ -1,5 +1,7 @@
 # JailbreakDetector.swift
 
+[![Swift](https://github.com/conmulligan/JailbreakDetector.swift/actions/workflows/swift.yml/badge.svg)](https://github.com/conmulligan/JailbreakDetector.swift/actions/workflows/swift.yml)
+
 A super simple, configurable and (optionally) verbose jailbreak detector for iOS.
 
 `JailbreakDetector` isn't designed to prevent apps from running on jailbroken devices, or even detect jailbreaks with 100% accuracy. Instead, it focuses on detecting some common signs of a jailbreak, and allows you to interrogate the results to determine why a jailbreak is suspected (which may be useful when debugging unexpected behaviour on jailbroken devices).
