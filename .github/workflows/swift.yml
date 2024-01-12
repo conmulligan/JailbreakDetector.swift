@@ -7,11 +7,22 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: sinoru/actions-setup-swift@v2
+      with:
+        swift-version: '5.9'
+    - name: Run SwiftLint
+      uses: sinoru/actions-swiftlint@v6
+
   build:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build
       run: xcodebuild -scheme JailbreakDetector -destination "platform=iOS Simulator,OS=latest,name=iPhone 13" -disableAutomaticPackageResolution
     - name: Run tests
